@@ -37,22 +37,26 @@ int rightPin = 6;
 int frontPin = 5;
 int rearPin = 3;
 
+int counter= 0;
+
 Servo left;
 Servo right;
 Servo front;
 Servo rear;
 
-int baseSpeed = 40;
+int baseSpeed = 80;
 
 double gyroXangle, gyroYangle; // Angle calculate using the gyro only
 double compAngleX, compAngleY; // Calculated angle using a complementary filter
 double kalAngleX, kalAngleY; // Calculated angle using a Kalman filter
 
-double SetpointX = 0, InputX=0, OutputX;
-double SetpointY = 0, InputY=0, OutputY;
+double SetpointX = 0, InputLeft=0,InputRight=0, OutputLeft,OutputRight;
+double SetpointY = 0, InputRear=0 , InputFront=0, OutputRear, OutputFront;
 
-PID XPID(&InputX, &OutputX, &SetpointX,0.2,0.18,0.08, DIRECT);
-PID YPID(&InputY, &OutputY, &SetpointY,0.2,0.18,0.08, DIRECT);
+PID LeftPID(&InputLeft, &OutputLeft, &SetpointX,0.5,0.4,0.2, DIRECT);
+PID RightPID(&InputRight, &OutputRight, &SetpointX,0.5,0.4,0.2, DIRECT);
+PID FrontPID(&InputFront, &OutputFront, &SetpointY,0.5,0.4,0.2, DIRECT);
+PID RearPID(&InputRear, &OutputRear, &SetpointY,0.5,0.4,0.2, DIRECT);
 
 uint32_t timer;
 uint8_t i2cData[14]; // Buffer for I2C data
@@ -70,8 +74,10 @@ void setup() {
   
   calibrateMotors();
     
-  XPID.SetMode(AUTOMATIC);
-  YPID.SetMode(AUTOMATIC);
+  LeftPID.SetMode(AUTOMATIC);
+  RightPID.SetMode(AUTOMATIC);
+  FrontPID.SetMode(AUTOMATIC);
+  RearPID.SetMode(AUTOMATIC);
   
   TWBR = ((F_CPU / 400000L) - 16) / 2; // Set I2C frequency to 400kHz
 
@@ -156,7 +162,7 @@ void loop() {
     gyroXangle = roll;
   } else
     kalAngleX = kalmanX.getAngle(roll, gyroXrate, dt); // Calculate the angle using a Kalman filter
-
+                          
   if (abs(kalAngleX) > 90)
     gyroYrate = -gyroYrate; // Invert rate, so it fits the restriced accelerometer reading
   kalAngleY = kalmanY.getAngle(pitch, gyroYrate, dt);
@@ -191,15 +197,15 @@ void loop() {
 
   /* Print Data */
 #if 0 // Set to 1 to activate
-  Serial.print(accX); Serial.print("\t");
-  Serial.print(accY); Serial.print("\t");
-  Serial.print(accZ); Serial.print("\t");
+  //Serial.print(accX); Serial.print("\t");
+  //Serial.print(accY); Serial.print("\t");
+  //Serial.print(accZ); Serial.print("\t");
 
-  Serial.print(gyroX); Serial.print("\t");
-  Serial.print(gyroY); Serial.print("\t");
-  Serial.print(gyroZ); Serial.print("\t");
+  //Serial.print(gyroX); Serial.print("\t");
+  //Serial.print(gyroY); Serial.print("\t");
+  //Serial.print(gyroZ); Serial.print("\t");
 
-  Serial.print("\t");
+  //Serial.print("\t");
 #endif
 
 //  Serial.print(roll); Serial.print("\t");
@@ -215,26 +221,49 @@ void loop() {
 //  Serial.print(compAngleY); Serial.print("\t");
 //  Serial.print(kalAngleY); Serial.print("\t");
 //  
-  InputX = kalAngleX;
-  InputY = kalAngleY;
+  InputLeft = kalAngleX;
+  InputRight = -kalAngleX;
+  
+  InputRear = kalAngleY;
+  InputFront = -kalAngleY;
+  
+  LeftPID.Compute();
+  RightPID.Compute();
+  
+  RearPID.Compute();
+  FrontPID.Compute();
 
-  XPID.Compute();
-  YPID.Compute();
-
-  left.write(baseSpeed - OutputX);
-  right.write(baseSpeed + OutputX);
-  front.write(baseSpeed - OutputY);
-  rear.write(baseSpeed + OutputY);
+  //left.write(baseSpeed + OutputLeft);
+  //right.write(baseSpeed + OutputRight);
+  front.write(baseSpeed + OutputFront);
+  rear.write(baseSpeed + OutputRear);
+  
+  Serial.print(OutputFront); Serial.print(",");Serial.println(OutputRear);
+//  Serial.print(kalAngleY); Serial.print("\t");
+ 
+  if(counter++ > 3000){
+    
+  left.write(0);
+  right.write(0);
+  front.write(0);
+  rear.write(0);
+  
+    while(true){
+      delay(10000);
+    }
+   
+    counter = 0;
+  }
   
 
 #if 0 // Set to 1 to print the temperature
-  Serial.print("\t");
+  //Serial.print("\t");
 
   double temperature = (double)tempRaw / 340.0 + 36.53;
-  Serial.print(temperature); Serial.print("\t");
+  //Serial.print(temperature); Serial.print("\t");
 #endif
 
-  Serial.print("\r\n");
+  //Serial.print("\r\n");
   delay(2);
 }
 
@@ -244,6 +273,7 @@ void calibrateMotors(){
   front.write(170);
   rear.write(170);
   
+  counter = 0;
   delay(10000);
   
   left.write(20);
