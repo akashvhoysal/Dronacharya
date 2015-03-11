@@ -44,7 +44,7 @@ Servo right;
 Servo front;
 Servo rear;
 
-int baseSpeed = 80;
+int baseSpeed = 60;
 
 double gyroXangle, gyroYangle; // Angle calculate using the gyro only
 double compAngleX, compAngleY; // Calculated angle using a complementary filter
@@ -53,10 +53,10 @@ double kalAngleX, kalAngleY; // Calculated angle using a Kalman filter
 double SetpointX = 0, InputLeft=0,InputRight=0, OutputLeft,OutputRight;
 double SetpointY = 0, InputRear=0 , InputFront=0, OutputRear, OutputFront;
 
-PID LeftPID(&InputLeft, &OutputLeft, &SetpointX,0.5,0.4,0.2, DIRECT);
-PID RightPID(&InputRight, &OutputRight, &SetpointX,0.5,0.4,0.2, DIRECT);
-PID FrontPID(&InputFront, &OutputFront, &SetpointY,0.5,0.4,0.2, DIRECT);
-PID RearPID(&InputRear, &OutputRear, &SetpointY,0.5,0.4,0.2, DIRECT);
+PID LeftPID(&InputLeft, &OutputLeft, &SetpointX,0.5,0.3,0.2, DIRECT);
+PID RightPID(&InputRight, &OutputRight, &SetpointX,0.5,0.3,0.2, DIRECT);
+PID FrontPID(&InputFront, &OutputFront, &SetpointY,0.5,0.3,0.2, DIRECT);
+PID RearPID(&InputRear, &OutputRear, &SetpointY,0.5,0.3,0.2, DIRECT);
 
 uint32_t timer;
 uint8_t i2cData[14]; // Buffer for I2C data
@@ -64,8 +64,6 @@ uint8_t i2cData[14]; // Buffer for I2C data
 // TODO: Make calibration routine
 
 void setup() {
-  Serial.begin(115200);
-  Wire.begin();
   
   left.attach(leftPin);
   right.attach(rightPin);
@@ -73,7 +71,10 @@ void setup() {
   rear.attach(rearPin);
   
   calibrateMotors();
-    
+
+  Serial.begin(115200);
+  Wire.begin();
+  
   LeftPID.SetMode(AUTOMATIC);
   RightPID.SetMode(AUTOMATIC);
   FrontPID.SetMode(AUTOMATIC);
@@ -238,7 +239,7 @@ void loop() {
   front.write(baseSpeed + OutputFront);
   rear.write(baseSpeed + OutputRear);
   
-  Serial.print(OutputFront); Serial.print(",");Serial.println(OutputRear);
+  Serial.print(baseSpeed + OutputFront); Serial.print(",");Serial.println(baseSpeed + OutputRear);
 //  Serial.print(kalAngleY); Serial.print("\t");
  
   if(counter++ > 3000){
