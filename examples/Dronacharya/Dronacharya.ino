@@ -32,10 +32,10 @@ double accX, accY, accZ;
 double gyroX, gyroY, gyroZ;
 int16_t tempRaw;
 
-int leftPin = 3;
-int rightPin = 5;
-int frontPin = 6;
-int rearPin = 9;
+int leftPin = 9;
+int rightPin = 6;
+int frontPin = 5;
+int rearPin = 3;
 
 Servo left;
 Servo right;
@@ -221,10 +221,10 @@ void loop() {
   XPID.Compute();
   YPID.Compute();
 
-  left.write(baseSpeed + OutputX);
-  right.write(baseSpeed - OutputX);
-  front.write(baseSpeed + OutputY);
-  rear.write(baseSpeed - OutputY);
+  left.write(baseSpeed - OutputX);
+  right.write(baseSpeed + OutputX);
+  front.write(baseSpeed - OutputY);
+  rear.write(baseSpeed + OutputY);
   
 
 #if 0 // Set to 1 to print the temperature
