@@ -53,10 +53,10 @@ double kalAngleX, kalAngleY; // Calculated angle using a Kalman filter
 double SetpointX = 0, InputLeft=0,InputRight=0, OutputLeft,OutputRight;
 double SetpointY = 0, InputRear=0 , InputFront=0, OutputRear, OutputFront;
 
-PID LeftPID(&InputLeft, &OutputLeft, &SetpointX,0.5,0.3,0.2, DIRECT);
-PID RightPID(&InputRight, &OutputRight, &SetpointX,0.5,0.3,0.2, DIRECT);
-PID FrontPID(&InputFront, &OutputFront, &SetpointY,0.5,0.3,0.2, DIRECT);
-PID RearPID(&InputRear, &OutputRear, &SetpointY,0.5,0.3,0.2, DIRECT);
+PID LeftPID(&InputLeft, &OutputLeft, &SetpointX,0.250,0.2,0.02, DIRECT);
+PID RightPID(&InputRight, &OutputRight, &SetpointX,0.250,0.2,0.02, DIRECT);
+PID FrontPID(&InputFront, &OutputFront, &SetpointY,0.274,0.266,0.07, DIRECT);
+PID RearPID(&InputRear, &OutputRear, &SetpointY,0.274,0.266,0.07, DIRECT);
 
 uint32_t timer;
 uint8_t i2cData[14]; // Buffer for I2C data
@@ -234,10 +234,10 @@ void loop() {
   RearPID.Compute();
   FrontPID.Compute();
 
-  //left.write(baseSpeed + OutputLeft);
-  //right.write(baseSpeed + OutputRight);
-  front.write(baseSpeed + OutputFront);
-  rear.write(baseSpeed + OutputRear);
+  left.write(baseSpeed + OutputLeft);
+  right.write(baseSpeed + OutputRight);
+  //front.write(baseSpeed + OutputFront);
+  //rear.write(baseSpeed + OutputRear);
   
   Serial.print(baseSpeed + OutputFront); Serial.print(",");Serial.println(baseSpeed + OutputRear);
 //  Serial.print(kalAngleY); Serial.print("\t");
