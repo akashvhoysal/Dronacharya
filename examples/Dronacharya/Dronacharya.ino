@@ -53,10 +53,10 @@ double kalAngleX, kalAngleY; // Calculated angle using a Kalman filter
 double SetpointX = 0, InputLeft=0,InputRight=0, OutputLeft,OutputRight;
 double SetpointY = 0, InputRear=0 , InputFront=0, OutputRear, OutputFront;
 
-PID LeftPID(&InputLeft, &OutputLeft, &SetpointX,0.250,0.2,0.02, DIRECT);
-PID RightPID(&InputRight, &OutputRight, &SetpointX,0.250,0.2,0.02, DIRECT);
-PID FrontPID(&InputFront, &OutputFront, &SetpointY,0.274,0.266,0.07, DIRECT);
-PID RearPID(&InputRear, &OutputRear, &SetpointY,0.274,0.266,0.07, DIRECT);
+PID LeftPID(&InputLeft, &OutputLeft, &SetpointX,0.05,0.02,0.02, DIRECT);
+PID RightPID(&InputRight, &OutputRight, &SetpointX,0.1,0.0,0.9, DIRECT);
+PID FrontPID(&InputFront, &OutputFront, &SetpointY,0.1,0.0,0.9, DIRECT);
+PID RearPID(&InputRear, &OutputRear, &SetpointY,0.1,0.0,0.9, DIRECT);
 
 uint32_t timer;
 uint8_t i2cData[14]; // Buffer for I2C data
@@ -79,6 +79,11 @@ void setup() {
   RightPID.SetMode(AUTOMATIC);
   FrontPID.SetMode(AUTOMATIC);
   RearPID.SetMode(AUTOMATIC);
+  
+  LeftPID.SetOutputLimits(-50,50);
+  RightPID.SetOutputLimits(-50,50);
+  FrontPID.SetOutputLimits(-50,50);
+  RearPID.SetOutputLimits(-50,50);
   
   TWBR = ((F_CPU / 400000L) - 16) / 2; // Set I2C frequency to 400kHz
 
@@ -223,25 +228,21 @@ void loop() {
 //  Serial.print(kalAngleY); Serial.print("\t");
 //  
   InputLeft = kalAngleX;
-  InputRight = -kalAngleX;
-  
+
   InputRear = kalAngleY;
-  InputFront = -kalAngleY;
   
   LeftPID.Compute();
-  RightPID.Compute();
+  //RightPID.Compute();
   
   RearPID.Compute();
-  FrontPID.Compute();
+  //FrontPID.Compute();
 
   left.write(baseSpeed + OutputLeft);
-  right.write(baseSpeed + OutputRight);
+  right.write(baseSpeed - OutputLeft);
   //front.write(baseSpeed + OutputFront);
   //rear.write(baseSpeed + OutputRear);
-  
-  Serial.print(baseSpeed + OutputFront); Serial.print(",");Serial.println(baseSpeed + OutputRear);
+  Serial.print(OutputLeft); Serial.print(",");Serial.println(OutputRear);
 //  Serial.print(kalAngleY); Serial.print("\t");
- 
   if(counter++ > 3000){
     
   left.write(0);
