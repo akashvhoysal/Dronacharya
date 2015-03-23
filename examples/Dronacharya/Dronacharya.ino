@@ -53,7 +53,11 @@ double kalAngleX, kalAngleY; // Calculated angle using a Kalman filter
 double SetpointX = 0, InputLeft=0,InputRight=0, OutputLeft,OutputRight;
 double SetpointY = 0, InputRear=0 , InputFront=0, OutputRear, OutputFront;
 
-PID LeftPID(&InputLeft, &OutputLeft, &SetpointX,0.05,0.02,0.02, DIRECT);
+PID LeftPID(&InputLeft, &OutputLeft, &SetpointX,0.0,0.1,0.0, DIRECT);
+
+//PID LeftPID(&InputLeft, &OutputLeft, &SetpointX,0.05,0.02,0.02, DIRECT);
+
+
 PID RightPID(&InputRight, &OutputRight, &SetpointX,0.1,0.0,0.9, DIRECT);
 PID FrontPID(&InputFront, &OutputFront, &SetpointY,0.1,0.0,0.9, DIRECT);
 PID RearPID(&InputRear, &OutputRear, &SetpointY,0.1,0.0,0.9, DIRECT);
@@ -70,7 +74,7 @@ void setup() {
   front.attach(frontPin);
   rear.attach(rearPin);
   
-  calibrateMotors();
+  //calibrateMotors();
 
   Serial.begin(115200);
   Wire.begin();
@@ -237,11 +241,16 @@ void loop() {
   RearPID.Compute();
   //FrontPID.Compute();
 
-  left.write(baseSpeed + OutputLeft);
-  right.write(baseSpeed - OutputLeft);
+  //left.write(baseSpeed + OutputLeft);
+  //right.write(baseSpeed - OutputLeft);
   //front.write(baseSpeed + OutputFront);
   //rear.write(baseSpeed + OutputRear);
-  Serial.print(OutputLeft); Serial.print(",");Serial.println(OutputRear);
+  Serial.print(kalAngleX);Serial.print(",");Serial.print("0");Serial.print(",");Serial.println(OutputLeft); 
+  
+  
+  //uncomment calibration
+  counter = 0;
+  
 //  Serial.print(kalAngleY); Serial.print("\t");
   if(counter++ > 3000){
     
